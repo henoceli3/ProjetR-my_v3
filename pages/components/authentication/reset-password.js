@@ -53,11 +53,15 @@ const ResetPassword = () => {
     e.preventDefault();
     console.log(token);
     axios
-      .put("http://localhost:4000/api/reset-password", JSON.stringify(data), {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      .put(
+        "https://rmy-api.vercel.app/api/reset-password",
+        JSON.stringify(data),
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      )
       .then((response) => {
         routeChange();
         console.log(response.data.message);

@@ -42,7 +42,7 @@ const Home = () => {
   const Login = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:4000/api/login", JSON.stringify(data), {
+      .post("https://rmy-api.vercel.app/api/login", JSON.stringify(data), {
         headers: {
           "Content-Type": "application/json",
         },
