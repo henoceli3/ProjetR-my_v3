@@ -31,6 +31,7 @@ import TabToTop from "../../../shared/layout-components/tab-to-top/tab-to-top";
 import Header from "../../../shared/layout-components/header/header";
 import { Helmet } from "react-helmet";
 import { Box, Button, Input, Modal, Select } from "@mui/material";
+import axios from "axios";
 
 const UsersIn = () => {
   const [open, setOpen] = useState(false);
@@ -43,101 +44,321 @@ const UsersIn = () => {
 
   function createData(
     name = string,
-    fonction=string,
+    fonction = string,
     surname = number,
     number = number,
     email = number,
     role = number
   ) {
-    return { name, fonction,surname, number, email, role };
+    return { name, fonction, surname, number, email, role };
   }
   const rows = [
-    createData("Frozen yoghurt", "Fonction",159, 6.0, 24, 4.0),
-    createData("Ice cream sandwich", "Fonction",237, 9.0, 37, 4.3),
-    createData("Eclair","Fonction", 262, 16.0, 24, 6.0),
-    createData("Cupcake", "Fonction",305, 3.7, 67, 4.3),
-    createData("Gingerbread","Fonction", 356, 16.0, 49, 3.9),
+    createData("Frozen yoghurt", "Fonction", 159, 6.0, 24, 4.0),
+    createData("Ice cream sandwich", "Fonction", 237, 9.0, 37, 4.3),
+    createData("Eclair", "Fonction", 262, 16.0, 24, 6.0),
+    createData("Cupcake", "Fonction", 305, 3.7, 67, 4.3),
+    createData("Gingerbread", "Fonction", 356, 16.0, 49, 3.9),
   ];
+
+  // -------------------------------recuperation de la liste des utilisateurs-------------------------------------
+  const [userList, setUserList] = useState([]);
+  useEffect(() => {
+    const fetchUserList = async () => {
+      try {
+        const response = await axios.get("http://localhost:4000/api/user", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setUserList(response.data.data);
+      } catch (error) {
+        console.error(
+          "Une erreur s'est produite lors de la récupération de la liste des utilisateurs :",
+          error
+        );
+      }
+    };
+
+    fetchUserList();
+  }, []);
+  // ----------------------------------------------------------------------------------------------------------------
+
+  // ---------------------------------CREATION D'UN USER-----------------------------
+  const [newUser, setNewUser] = useState({
+    nom: "",
+    prenom: "",
+    fonction: "",
+    email: "",
+    id_entite: 1,
+    role_id: 1,
+  });
+  const { nom, prenom, fonction, email, mot_de_passe, id_entite, role_id } =
+    newUser;
+
+  const changeHandler = (e) => {
+    setNewUser({ ...newUser, [e.target.name]: e.target.value });
+  };
+  const creatUser = (e) => {
+    e.preventDefault(); // Pour éviter le comportement par défaut du formulaire
+
+    axios
+      .post("http://localhost:4000/api/user", newUser, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then((response) => {
+        console.log(response);
+        setNewUser({
+          nom: "",
+          prenom: "",
+          fonction: "",
+          email: "",
+          id_entite: 1,
+          role_id: 1,
+        });
+        handleClose();
+      })
+      .catch((error) => {
+        console.error(
+          "Une erreur s'est produite lors de la création de l'utilisateur :",
+          error
+        );
+      });
+  };
+  // ----------------------------------------------------------------------------------
+
+  // ----------------------------suppression d'un user---------------------------------
+  function deleteUser(id) {
+    axios
+      .delete(`http://localhost:4000/api/user/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+      .then((response) => {
+        console.log(response.data.message);
+      })
+      .catch((error) => {
+        console.error(
+          "Une erreur s'est produite lors de la suppression de l'utilisateur :",
+          error
+        );
+      });
+  }
+  // ----------------------------------------------------------------------------------
+
+  // ------------------------------------modfier un user--------------------------------
+  const [idUser, setIdUser] = useState();
+  const updateUser = async () => {
+    try {
+      const response = await axios.put(
+        `http://localhost:4000/api/user/${JSON.stringify(idUser)}`,
+        JSON.stringify(newUser),
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      console.log(response.data.message);
+      handleClose();
+      setNewUser({
+        nom: "",
+        prenom: "",
+        fonction: "",
+        email: "",
+        id_entite: 1,
+        role_id: 1,
+      });
+    } catch (error) {
+      console.log(error.response.data.message);
+      handleClose();
+    }
+  };
+
+  // remplire les champs vide
+  const setField = (nom, prenom, fonction, email, id_entite, role_id) => {
+    setNewUser({
+      nom: nom,
+      prenom: prenom,
+      fonction: fonction,
+      email: email,
+      id_entite: id_entite,
+      role_id: role_id,
+    });
+  };
+  // -----------------------------------------------------------------------------------
+
+  //-------------------------------recuperer la liste des roles------------------------
+  const [roleData, setRoleData] = useState([]);
+  useEffect(() => {
+    const fetchRoleData = async () => {
+      try {
+        const response = await axios.get("http://localhost:4000/api/role", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setRoleData(response.data.data);
+      } catch (error) {
+        console.error(
+          "Une erreur s'est produite lors de la récupération des rôles :",
+          error
+        );
+      }
+    };
+
+    fetchRoleData();
+  }, []);
+  // --------------------------------------------------------------------------------------------
+
+  //------------------------------------------------recuperer la liste des entités----------------
+  const [entiteData, setEntiteData] = useState([]);
+  useEffect(() => {
+    const fetchEntiteData = async () => {
+      try {
+        const response = await axios.get("http://localhost:4000/api/entite", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setEntiteData(response.data.data);
+      } catch (error) {
+        console.error(
+          "Une erreur s'est produite lors de la récupération des entités :",
+          error
+        );
+      }
+    };
+
+    fetchEntiteData();
+  }, []);
+  // ------------------------------------------------------------------------------------------
 
   return (
     <>
       <Helmet>
         <body className="ltr main-body leftmenu"></body>
       </Helmet>
-      <div className="inner-body mt-3" >
-                <Button onClick={handleOpen}  className="float-md-right btn btn-primary "  sx={{backgroundColor:"blue",colorScheme:"blue",color:"white"}}>CREER UTILISATEUR</Button>
-               
-              <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="parent-modal-title"
-                aria-describedby="parent-modal-description"
-                sx={{marginLeft:'30%'}}
-              >
-                <Box width={450} bgcolor={"white"} mt={10} pl={2} pt={2} border={'2px solid black'} boxShadow={10} borderRadius={5}>
-                  <Input type="text" placeholder="Nom de l'employe" sx={{marginBottom:1, marginRight:5}}/>
-                  <Input type="text" placeholder="prenom"/><br/><br/>
-                  <Input type="text" placeholder="Fonction"/><br/><br/>
-                  <Input type="number" placeholder="Contact" sx={{marginBottom:1, marginRight:5}}/>
-                  <Input type="email" placeholder="email"/><br/><br/>
-                  <Input type="Password" placeholder="Mot de passe" sx={{marginBottom:1, marginRight:5}}/>
-                  <select className="col-md-5">
-                    <option>role1</option>
-                    <option>role2</option>
-                    <option>role3</option>
-                    <option>role4</option>
-                    <option>role5</option>
-                  </select><br/><br/>
-                  <Button onClick={handleClose} sx={{color:'gray'}}>fermer</Button>
-                  <Button color="primary">Valider</Button>
-                </Box>
-              </Modal>
-                  <TableContainer component={Paper} variant="outlined" square  bgcolor={"white"} sx={{backgroundColor:'white', colorScheme:'white'}} >
-                    <Table sx={{ minWidth: 320 }}  aria-label="simple table">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Nom</TableCell>
-                          <TableCell align="right">Prenom</TableCell>
-                          <TableCell align="right">Fonction</TableCell>
-                          <TableCell align="right">Email</TableCell>
-                          <TableCell align="right">Numero</TableCell>
-                          <TableCell align="right">Role</TableCell>
-                          <TableCell align="right">Actions</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {rows.map((row) => (
-                          <TableRow
-                            key={row.name}
-                            sx={{
-                              
-                            }}
-                          >
-                            <TableCell component="th" scope="row">
-                              {row.name}
-                            </TableCell>
-                            <TableCell align="right">{row.surname}</TableCell>
-                            <TableCell align="right">{row.fonction}</TableCell>
-                            <TableCell align="right">{row.number}</TableCell>
-                            <TableCell align="right">{row.email}</TableCell>
-                            <TableCell align="right">{row.role}</TableCell>
-                            <TableCell  align="right"sx={{justifyContent:'space-around'}} >
-                              <i class="fas fa-edit mr-2 " role="button" ></i>
-                              <i class="fas fa-trash-alt " role="button"></i>
-                                
-                              
-                            </TableCell>
+      <div className="inner-body mt-3">
+        <Button
+          onClick={handleOpen}
+          className="float-md-right btn btn-primary "
+          sx={{ backgroundColor: "blue", colorScheme: "blue", color: "white" }}
+        >
+          CREER UTILISATEUR
+        </Button>
 
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  {/* <{children}/> */}
-                </div>
+        <Modal
+          open={open}
+          onClose={handleClose}
+          aria-labelledby="parent-modal-title"
+          aria-describedby="parent-modal-description"
+          sx={{ marginLeft: "30%" }}
+        >
+          <Box
+            width={450}
+            bgcolor={"white"}
+            mt={10}
+            pl={2}
+            pt={2}
+            border={"2px solid black"}
+            boxShadow={10}
+            borderRadius={5}
+          >
+            <Input
+              type="text"
+              placeholder="Nom de l'employe"
+              sx={{ marginBottom: 1, marginRight: 5 }}
+            />
+            <Input type="text" placeholder="prenom" />
+            <br />
+            <br />
+            <Input type="text" placeholder="Fonction" />
+            <br />
+            <br />
+            <Input
+              type="number"
+              placeholder="Contact"
+              sx={{ marginBottom: 1, marginRight: 5 }}
+            />
+            <Input type="email" placeholder="email" />
+            <br />
+            <br />
+            <Input
+              type="Password"
+              placeholder="Mot de passe"
+              sx={{ marginBottom: 1, marginRight: 5 }}
+            />
+            <select className="col-md-5">
+              <option>role1</option>
+              <option>role2</option>
+              <option>role3</option>
+              <option>role4</option>
+              <option>role5</option>
+            </select>
+            <br />
+            <br />
+            <Button onClick={handleClose} sx={{ color: "gray" }}>
+              fermer
+            </Button>
+            <Button color="primary">Valider</Button>
+          </Box>
+        </Modal>
+        <TableContainer
+          component={Paper}
+          variant="outlined"
+          square
+          bgcolor={"white"}
+          sx={{ backgroundColor: "white", colorScheme: "white" }}
+        >
+          <Table sx={{ minWidth: 320 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Nom</TableCell>
+                <TableCell align="right">Prenom</TableCell>
+                <TableCell align="right">Fonction</TableCell>
+                <TableCell align="right">Email</TableCell>
+                <TableCell align="right">Numero</TableCell>
+                <TableCell align="right">Role</TableCell>
+                <TableCell align="right">Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.name} sx={{}}>
+                  <TableCell component="th" scope="row">
+                    {row.name}
+                  </TableCell>
+                  <TableCell align="right">{row.surname}</TableCell>
+                  <TableCell align="right">{row.fonction}</TableCell>
+                  <TableCell align="right">{row.number}</TableCell>
+                  <TableCell align="right">{row.email}</TableCell>
+                  <TableCell align="right">{row.role}</TableCell>
+                  <TableCell
+                    align="right"
+                    sx={{ justifyContent: "space-around" }}
+                  >
+                    <i class="fas fa-edit mr-2 " role="button"></i>
+                    <i class="fas fa-trash-alt " role="button"></i>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        {/* <{children}/> */}
+      </div>
     </>
   );
-}
-UsersIn.layout = "Contentlayout"
+};
+UsersIn.layout = "Contentlayout";
 
-export default UsersIn
+export default UsersIn;

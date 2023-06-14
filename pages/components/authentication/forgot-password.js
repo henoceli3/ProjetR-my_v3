@@ -32,8 +32,9 @@ const ForgotPassword = () => {
 
   const SendResetToken = (e) => {
     e.preventDefault();
+
     axios
-      .post("http://localhost:4000/api/forgot-password", JSON.stringify(data), {
+      .post("http://localhost:4000/api/forgot-password", data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -42,7 +43,10 @@ const ForgotPassword = () => {
         console.log(response.data.message);
       })
       .catch((error) => {
-        console.log(error);
+        console.error(
+          "Une erreur s'est produite lors de l'envoi du token de réinitialisation :",
+          error
+        );
       });
   };
 

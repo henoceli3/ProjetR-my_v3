@@ -41,28 +41,28 @@ const Home = () => {
 
   const Login = (e) => {
     e.preventDefault();
+
     axios
-      .post("http://localhost:4000/api/login", JSON.stringify(data), {
+      .post("http://localhost:4000/api/login", data, {
         headers: {
           "Content-Type": "application/json",
         },
       })
       .then((response) => {
         console.log(response);
-        // Stockage du  token et des donnés de l'utilisateur dans le localStorage
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("rmy_user", response.data.data);
-        //vider les champs après la connexion
+        localStorage.setItem("rmy_user", JSON.stringify(response.data.data));
         setData({
           email: "",
           mot_de_passe: "",
         });
-        // redirection vers le dashboard
         routeChange();
       })
       .catch((error) => {
-        // Si la connexion a échoué, affichez un message d'erreur à l'utilisateur
-        console.log(error);
+        console.error(
+          "Une erreur s'est produite lors de la connexion :",
+          error
+        );
       });
   };
 

@@ -47,11 +47,11 @@ const ResetPassword = () => {
     setData({ ...data, [e.target.name]: e.target.value });
   };
 
-
   const updateMPD = (e) => {
     e.preventDefault();
+
     axios
-      .put("http://localhost:4000/api/reset-password", JSON.stringify(data), {
+      .put("http://localhost:4000/api/reset-password", data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -61,9 +61,13 @@ const ResetPassword = () => {
         console.log(response.data.message);
       })
       .catch((error) => {
-        console.log(error);
+        console.error(
+          "Une erreur s'est produite lors de la réinitialisation du mot de passe :",
+          error
+        );
       });
   };
+
   return (
     <div>
       <Seo title="Reset Password" />
