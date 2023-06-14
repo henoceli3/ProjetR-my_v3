@@ -26,9 +26,9 @@ const Home = () => {
   const [err, setError] = useState("");
   const [data, setData] = useState({
     email: "",
-    password: "",
+    mot_de_passe: "",
   });
-  const { email, password } = data;
+  const { email, mot_de_passe } = data;
   const changeHandler = (e) => {
     setData({ ...data, [e.target.name]: e.target.value });
     setError("");
@@ -42,13 +42,13 @@ const Home = () => {
   const Login = (e) => {
     e.preventDefault();
     axios
-      .post("https://rmy-api.vercel.app/api/login", JSON.stringify(data), {
+      .post("http://localhost:4000/api/login", JSON.stringify(data), {
         headers: {
           "Content-Type": "application/json",
         },
       })
       .then((response) => {
-        console.log(response.data.message);
+        console.log(response);
         // Stockage du  token et des donnés de l'utilisateur dans le localStorage
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("rmy_user", response.data.data);
@@ -62,7 +62,7 @@ const Home = () => {
       })
       .catch((error) => {
         // Si la connexion a échoué, affichez un message d'erreur à l'utilisateur
-        setError(error.response.data.message);
+        console.log(error);
       });
   };
 
@@ -147,9 +147,9 @@ const Home = () => {
                             <Form.Control
                               className="form-control"
                               placeholder="Entrer votre mot de passe"
-                              name="password"
+                              name="mot_de_passe"
                               type="password"
-                              value={password}
+                              value={mot_de_passe}
                               onChange={changeHandler}
                               required
                             />

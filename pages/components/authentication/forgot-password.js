@@ -33,20 +33,16 @@ const ForgotPassword = () => {
   const SendResetToken = (e) => {
     e.preventDefault();
     axios
-      .post(
-        "https://rmy-api.vercel.app/api/forgot-password",
-        JSON.stringify(data),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
+      .post("http://localhost:4000/api/forgot-password", JSON.stringify(data), {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         console.log(response.data.message);
       })
       .catch((error) => {
-        console.log(response.data.message);
+        console.log(error);
       });
   };
 

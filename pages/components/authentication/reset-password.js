@@ -9,7 +9,6 @@ import logolight from "../../../public/assets/img/brand/logo-light.png";
 import user from "../../../public/assets/img/svgs/user.svg";
 import logo from "../../../public/assets/img/brand/logo.png";
 import axios from "axios";
-import { useLocation } from "react-router-dom";
 import { useRouter } from "next/router";
 
 const ResetPassword = () => {
@@ -51,17 +50,12 @@ const ResetPassword = () => {
 
   const updateMPD = (e) => {
     e.preventDefault();
-    console.log(token);
     axios
-      .put(
-        "https://rmy-api.vercel.app/api/reset-password",
-        JSON.stringify(data),
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      )
+      .put("http://localhost:4000/api/reset-password", JSON.stringify(data), {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
       .then((response) => {
         routeChange();
         console.log(response.data.message);
