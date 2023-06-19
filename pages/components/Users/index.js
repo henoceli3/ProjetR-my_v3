@@ -42,24 +42,6 @@ const UsersIn = () => {
     setOpen(false);
   };
 
-  function createData(
-    name = string,
-    fonction = string,
-    surname = number,
-    number = number,
-    email = number,
-    role = number
-  ) {
-    return { name, fonction, surname, number, email, role };
-  }
-  const rows = [
-    createData("Frozen yoghurt", "Fonction", 159, 6.0, 24, 4.0),
-    createData("Ice cream sandwich", "Fonction", 237, 9.0, 37, 4.3),
-    createData("Eclair", "Fonction", 262, 16.0, 24, 6.0),
-    createData("Cupcake", "Fonction", 305, 3.7, 67, 4.3),
-    createData("Gingerbread", "Fonction", 356, 16.0, 49, 3.9),
-  ];
-
   // -------------------------------recuperation de la liste des utilisateurs-------------------------------------
   const [userList, setUserList] = useState([]);
   useEffect(() => {
@@ -72,6 +54,7 @@ const UsersIn = () => {
           },
         });
         setUserList(response.data.data);
+        console.log(response);
       } catch (error) {
         console.error(
           "Une erreur s'est produite lors de la récupération de la liste des utilisateurs :",
@@ -81,7 +64,7 @@ const UsersIn = () => {
     };
 
     fetchUserList();
-  }, []);
+  }, [userList]);
   // ----------------------------------------------------------------------------------------------------------------
 
   // ---------------------------------CREATION D'UN USER-----------------------------
@@ -93,15 +76,12 @@ const UsersIn = () => {
     id_entite: 1,
     role_id: 1,
   });
-  const { nom, prenom, fonction, email, mot_de_passe, id_entite, role_id } =
-    newUser;
+  const { nom, prenom, fonction, email, id_entite, role_id } = newUser;
 
   const changeHandler = (e) => {
     setNewUser({ ...newUser, [e.target.name]: e.target.value });
   };
   const creatUser = (e) => {
-    e.preventDefault(); // Pour éviter le comportement par défaut du formulaire
-
     axios
       .post("http://localhost:4000/api/user", newUser, {
         headers: {
@@ -153,11 +133,12 @@ const UsersIn = () => {
 
   // ------------------------------------modfier un user--------------------------------
   const [idUser, setIdUser] = useState();
+
   const updateUser = async () => {
     try {
       const response = await axios.put(
-        `http://localhost:4000/api/user/${JSON.stringify(idUser)}`,
-        JSON.stringify(newUser),
+        `http://localhost:4000/api/user/${idUser}`,
+        newUser,
         {
           headers: {
             "Content-Type": "application/json",
@@ -167,18 +148,26 @@ const UsersIn = () => {
       );
       console.log(response.data.message);
       handleClose();
-      setNewUser({
-        nom: "",
-        prenom: "",
-        fonction: "",
-        email: "",
-        id_entite: 1,
-        role_id: 1,
-      });
+      resetNewUser();
     } catch (error) {
-      console.log(error.response.data.message);
+      console.error(
+        "Une erreur s'est produite lors de la mofication de l'utilisateur :",
+        error
+      );
       handleClose();
+      resetNewUser();
     }
+  };
+
+  const resetNewUser = () => {
+    setNewUser({
+      nom: "",
+      prenom: "",
+      fonction: "",
+      email: "",
+      id_entite: 1,
+      role_id: 1,
+    });
   };
 
   // remplire les champs vide
@@ -193,6 +182,18 @@ const UsersIn = () => {
     });
   };
   // -----------------------------------------------------------------------------------
+  //------ une fonction qui determine si il faut modifier ou créer ------------------
+  const [show, setShow] = useState(true);
+  const updateOrCreate = () => {
+    if (show) {
+      // Create a new user
+      creatUser();
+    } else {
+      // Update an existing user
+      updateUser();
+    }
+  };
+  // -----------------------------------------------------------------------------
 
   //-------------------------------recuperer la liste des roles------------------------
   const [roleData, setRoleData] = useState([]);
@@ -230,6 +231,7 @@ const UsersIn = () => {
           },
         });
         setEntiteData(response.data.data);
+        console.log(response);
       } catch (error) {
         console.error(
           "Une erreur s'est produite lors de la récupération des entités :",
@@ -242,6 +244,60 @@ const UsersIn = () => {
   }, []);
   // ------------------------------------------------------------------------------------------
 
+  // -----------------recuperer le role par son id pour afficher le label----------------------
+  const [role, setRole] = useState("");
+  const [loadingRole, setLoadingRole] = useState(true);
+
+  const fetchRoleById = async (role_id) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:4000/api/role/${role_id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setRole(response.data.data.label);
+    } catch (error) {
+      console.error(
+        "Une erreur s'est produite lors de la récupération du rôle :",
+        error
+      );
+    } finally {
+      setLoadingRole(false);
+    }
+  };
+  //----------------------------------------------------------------------------------------
+
+  // ------------recuperer l'entite par son id pour afficher le label------------------------
+  const [entite, setEntite] = useState("");
+  const [loadingEntite, setLoadingEntite] = useState(true);
+
+  const fetchEntiteById = async (id_entite) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:4000/api/entite/${id_entite}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      setEntite(response.data.data.nom);
+    } catch (error) {
+      console.error(
+        "Une erreur s'est produite lors de la récupération de l'entité :",
+        error
+      );
+    } finally {
+      setLoadingEntite(false);
+    }
+  };
+  // ---------------------------------------------------------------------------------
+
   return (
     <>
       <Helmet>
@@ -249,7 +305,10 @@ const UsersIn = () => {
       </Helmet>
       <div className="inner-body mt-3">
         <Button
-          onClick={handleOpen}
+          onClick={() => {
+            handleOpen();
+            setShow(true);
+          }}
           className="float-md-right btn btn-primary "
           sx={{ backgroundColor: "blue", colorScheme: "blue", color: "white" }}
         >
@@ -277,39 +336,84 @@ const UsersIn = () => {
               type="text"
               placeholder="Nom de l'employe"
               sx={{ marginBottom: 1, marginRight: 5 }}
+              name="nom"
+              value={nom}
+              onChange={changeHandler}
             />
-            <Input type="text" placeholder="prenom" />
-            <br />
-            <br />
-            <Input type="text" placeholder="Fonction" />
+            <Input
+              type="text"
+              placeholder="prenom"
+              name="prenom"
+              value={prenom}
+              onChange={changeHandler}
+            />
             <br />
             <br />
             <Input
+              type="text"
+              placeholder="Fonction"
+              name="fonction"
+              value={fonction}
+              onChange={changeHandler}
+            />
+            <br />
+            <br />
+            {/* <Input
               type="number"
               placeholder="Contact"
               sx={{ marginBottom: 1, marginRight: 5 }}
-            />
-            <Input type="email" placeholder="email" />
-            <br />
-            <br />
+            /> */}
             <Input
+              type="email"
+              placeholder="email"
+              name="email"
+              value={email}
+              onChange={changeHandler}
+            />
+            <br />
+            <br />
+            {/* <Input
               type="Password"
               placeholder="Mot de passe"
               sx={{ marginBottom: 1, marginRight: 5 }}
-            />
-            <select className="col-md-5">
-              <option>role1</option>
-              <option>role2</option>
-              <option>role3</option>
-              <option>role4</option>
-              <option>role5</option>
+            /> */}
+            <select
+              className="col-md-5"
+              value={id_entite}
+              name="id_entite"
+              onChange={changeHandler}
+            >
+              {entiteData.map((entite) => (
+                <option key={entite.id_entite} value={entite.id_entite}>
+                  {entite.nom}
+                </option>
+              ))}
+            </select>
+            <select
+              className="col-md-5"
+              value={role_id}
+              name="role_id"
+              onChange={changeHandler}
+            >
+              {roleData.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.label}
+                </option>
+              ))}
             </select>
             <br />
             <br />
             <Button onClick={handleClose} sx={{ color: "gray" }}>
               fermer
             </Button>
-            <Button color="primary">Valider</Button>
+            <Button
+              color="primary"
+              onClick={() => {
+                updateOrCreate();
+              }}
+            >
+              Valider
+            </Button>
           </Box>
         </Modal>
         <TableContainer
@@ -326,28 +430,50 @@ const UsersIn = () => {
                 <TableCell align="right">Prenom</TableCell>
                 <TableCell align="right">Fonction</TableCell>
                 <TableCell align="right">Email</TableCell>
-                <TableCell align="right">Numero</TableCell>
+                {/* <TableCell align="right">Numero</TableCell> */}
                 <TableCell align="right">Role</TableCell>
                 <TableCell align="right">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.name} sx={{}}>
+              {userList.map((user) => (
+                <TableRow key={user.id_utilisateur} sx={{}}>
                   <TableCell component="th" scope="row">
-                    {row.name}
+                    {user.nom}
                   </TableCell>
-                  <TableCell align="right">{row.surname}</TableCell>
-                  <TableCell align="right">{row.fonction}</TableCell>
-                  <TableCell align="right">{row.number}</TableCell>
-                  <TableCell align="right">{row.email}</TableCell>
-                  <TableCell align="right">{row.role}</TableCell>
+                  <TableCell align="right">{user.prenom}</TableCell>
+                  <TableCell align="right">{user.fonction}</TableCell>
+                  {/* <TableCell align="right">{row.number}</TableCell> */}
+                  <TableCell align="right">{user.email}</TableCell>
+                  <TableCell align="right">{user.role_id}</TableCell>
                   <TableCell
                     align="right"
                     sx={{ justifyContent: "space-around" }}
                   >
-                    <i class="fas fa-edit mr-2 " role="button"></i>
-                    <i class="fas fa-trash-alt " role="button"></i>
+                    <i
+                      class="fas fa-edit mr-2 "
+                      role="button"
+                      onClick={() => {
+                        handleOpen();
+                        setField(
+                          user.nom,
+                          user.prenom,
+                          user.fonction,
+                          user.email,
+                          user.id_entite,
+                          user.role_id
+                        );
+                        setShow(false);
+                        setIdUser(user.id_utilisateur);
+                      }}
+                    ></i>
+                    <i
+                      class="fas fa-trash-alt "
+                      role="button"
+                      onClick={() => {
+                        deleteUser(user.id_utilisateur);
+                      }}
+                    ></i>
                   </TableCell>
                 </TableRow>
               ))}
