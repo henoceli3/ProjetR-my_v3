@@ -289,11 +289,11 @@ const AddChap = () => {
     }
   };
 
-  const setFields_1 = (id_texte, id_chapitre, cop) => {
+  const setFields_1 = (id_texte, id_chapitre, corps_article) => {
     setArticle({
-      id_texte: 1,
-      titre_chapitre: "",
-      corps_chapitre: "",
+      id_chapitre: id_texte,
+      titre_article: id_chapitre,
+      corps_article: corps_article,
     });
   };
   //----------------------------------------------------------------------------
@@ -593,6 +593,11 @@ const AddChap = () => {
                     <ModeEditIcon
                       sx={{ color: "blue" }}
                       onClick={() => {
+                        setFields_1(
+                          article.id_chapitre,
+                          article.titre_article,
+                          article.corps_article
+                        );
                         handleOpen();
                         setShow_1(false);
                         setIdArticle(article.id_article);
